@@ -6,6 +6,7 @@ function init(){
   toto.showGrid(500,100);
   var d = new Date();
   d.setMonth(1);
+  //this lat/long is just outside Sydney
   toto.moebiusStone(d, {lat:-33.8470219, lng:150.3715133}, 300);
   toto.toggleTimeLapse("default", 5, "minutes");
   toto.showTerrain();
