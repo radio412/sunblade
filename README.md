@@ -13,4 +13,4 @@ Built using Three alpha 0.87
 
 If you have a WebGL enabled browser, see it working at https://radio412.github.io/sunblade/index.html
 
-The example uses the latitude and longitude of Sydney. Change this in js/kansas.js
+The example uses the latitude and longitude of Sydney. Change this in js/project_scripts/kansas.js
