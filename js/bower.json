@@ -1,0 +1,26 @@
+{
+  "name": "blade",
+  "homepage": "https://github.com/radio412/blade",
+  "authors": [
+    "Jeff Berg"
+  ],
+  "description": "blade",
+  "main": "kansas.js",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "leaflet": "^1.0.3",
+    "angular": "^1.5.8",
+    "d3": "^4.2.2",
+    "jquery": "^3.1.0",
+    "suncalc": "^1.8.0",
+    "react": "^15.3.1"
+  }
+}
