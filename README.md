@@ -1,6 +1,6 @@
 # sunblade
 
-This is a quick and working, but unfinished project to show an efficient 4 port display of a single scene within individual controls.
+This is a quick and working, but unfinished project to show an efficient 4 port display of a single scene with individual controls.
 
 A date/time controller is implemented via moment.js
 
