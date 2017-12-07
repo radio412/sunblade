@@ -292,7 +292,7 @@ Dorothy.prototype.moebiusStone = function(date, location, radius, scene){
 /*
 Load an external OBJ file with mtl file automagically. This does not put the object on the scene, but instead returns it to the caller called "handler".
 This is a magic function in that it's doing things in a way you don't expect. It can only handle one mtl file per obj file. If you're wisest of wizards, please feel free to add multi-mtl support, but beware the twisty passages all different. You're likely to be attacked by a Gru.
-This function loads the obj file twice, but assumes the second load is cached in ram. Don't give me any jurisdiction-hack crap though. Why not use the cache to our advantage for once? What are you, the cache police?
+This function loads the obj file twice, but assumes the second load is cached in ram. Don't give me any this is a hack crap though. Why not use the cache to our advantage for once? What are you, the cache police?
 */
 Dorothy.prototype.magicLoadOBJ = function(path, handler, callback, pmanager){
 
