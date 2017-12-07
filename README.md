@@ -10,3 +10,5 @@ A date/time controller is implemented via moment.js
 The sun position then uses the date/time to position the sun in the scene using suncalc.js
 
 Built using Three alpha 0.87
+
+If you have a WebGL enabled browser, see it working at https://radio412.github.io/sunblade/index.html
