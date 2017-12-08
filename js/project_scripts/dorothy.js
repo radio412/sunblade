@@ -357,7 +357,7 @@ Dorothy.prototype.magicLoadOBJ = function(path, handler, callback, pmanager){
 /*
 Let's add some terrain capability to the app. THis isn't working yet.
 "Here we create worlds. Only time destroys them." -Bhagavad Gita
-This function contains two ram floaters for converting lat long to slippy tile coordinates as defined by http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#ECMAScript_.28JavaScript.2FActionScript.2C_etc..29
+This function contains some functions for converting lat long to slippy tile coordinates as defined by http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#ECMAScript_.28JavaScript.2FActionScript.2C_etc..29
 This should of course be in a utilities class, but this function should be used rarely anyways... you know what, nevermind. I am not going to sit here and justify myself to you. I'm my own person, and I deserve love too. Also, Check out the hook while my DJ revolves it.
 */
 Dorothy.prototype.showTerrain = function(scene){
