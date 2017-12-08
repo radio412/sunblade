@@ -3,7 +3,6 @@
 /*
 (Vishnu) dark as clouds but glowingly...
 Here we create worlds, only time destroys them.
-Follow the yellow brick road.
 */
 
 /*
@@ -25,7 +24,7 @@ A small dog escapes her spidery clutches.
 A girl in a house that sits on someone else's horizon weeps.
 Men who claim to be wizards roam the countryside, looking to sell fear in crystal balls.
 A storm appears on the horizon but the people pretend it isn't there. They laugh nervously if anyone reminds them of the impending doom.
-Set default and init states.
+Set default and init states. Follow the yellow brick road.
 */
 
 Dorothy = function (mapBoxKey){
