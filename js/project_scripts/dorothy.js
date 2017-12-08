@@ -19,10 +19,10 @@ THREE   https://threejs.org/
 
 /*
 Everything is black and white. 
-An old woman who has had something terrible happen in her past has transformed into monster
+An old woman who has had something terrible happen in her past has transformed into a monster.
 She rides a women's victorian bicycle down a barren road, but the nearest place seems impossibly far away, even on a bicycle.
 A small dog escapes her basket.
-A girl in a house that sits on someone else's horizon weeps.
+A girl in a house that sits on someone else's horizon, weeps.
 Men who claim to be wizards roam the countryside, looking to sell fear in crystal balls.
 A storm appears on the horizon but the people pretend it isn't there. They laugh, dark as clouds, if anyone reminds them of the impending doom.
 Set default and init states. Follow the yellow brick road.
@@ -47,7 +47,10 @@ Dorothy = function (mapBoxKey){
 }
 
 
-//this is default 4 port view, but can be overridden by the client code to instantiate whatever the heck setup they want. But this is the out of box setup. Be careful, or don't. Be crazy. Be Boring. Rewrite the code, or don't.
+/*this is default 4 port view, but can be overridden by the client code to instantiate whatever the heck setup they want. But this is the out of box setup. Be careful, or don't. Be crazy. Be Boring. Rewrite the code, or don't.
+All the world turns to color.
+You can turn back now, but all the possibilities here draw you further out, like a rip tide, and you're under and gone.
+*/
 Dorothy.prototype.clickHeels = function(e,tl,tr,bl,br){
   var scope = this;
   this.htmlElements.tl = tl;
@@ -116,7 +119,7 @@ Dorothy.prototype.processResizeStack = function(){
   this.processRenderStack();
 }
 
-//Add a function to deal with resizing of the dom. This is a factory for a standard resize of the canvas and div using a tpical webGL Renderer. The user can skip this and add there own function to the resizeStack object.
+//The bottle had but one label and all it said was drink this. Add a function to deal with resizing of the dom. This is a factory for a standard resize of the canvas and div using a typical webGL Renderer. The user can skip this and add their own function to the resizeStack object if your rendering some other way.  
 Dorothy.prototype.addToResizeStack = function(name, element, camera, renderer){
   var scope = this;
   this.resizeStack[name] = function(){
@@ -131,7 +134,7 @@ Dorothy.prototype.removeFromResizeStack = function(name){
   delete this.resizeStack[name];
 }
 
-//we use one resize listener. STFU. This way there's only one. Ever. There's no abandoned events floating around leaking all over your ram. If you need something to happen on resize, add a function to the resizeStack object. If you put in a new resize function, I don't even know you.
+//we use one resize listener, no more. STFU. This way there's only one, Neo. Ever. There's no abandoned events floating around leaking all over your ram. If you need something to happen on resize, add a function to this resizeStack object. If you put in a new resize function, I don't even know you.
 Dorothy.prototype.resizeWithDom = function(element, name, camera, renderer){
   if(this.resizeStackListener == undefined){
     var scope = this;
@@ -181,13 +184,13 @@ Dorothy.prototype.addScene = function(name){
   return this.scenes[name];
 }
 
-//Have you been reading any of the other comments? If so, you know whay it would be cool to have multiiple controls to switch through.
+//Have you been reading any of the other comments? If so, you know whay it would be cool to have multiple controls to switch through.
 Dorothy.prototype.addControls = function(name, type, camera, element){
   this.controls[name] = new THREE[type](camera, element);
   return this.controls[name];
 }
 
-// this allows us to add objects to the scene. You can add anything you want, lights, objects, rays, sharks, lasers, chairs.
+// this allows us to add objects to the scene. You can add anything you want, lights, objects, rays, sharks, lasers, chairs, chickens wearing sneakers
 Dorothy.prototype.addObject = function(object, scene){
   this.scenes[scene].add(object);
   this.processRenderStack();
