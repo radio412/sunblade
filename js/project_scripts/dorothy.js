@@ -19,7 +19,12 @@ THREE   https://threejs.org/
 */
 
 /*
-Dorothy is a built environment viewer with sun, GIS enablement, and built for built environment views from revit and rhino.
+Everything is black and white. 
+An old woman who has had something terrible happen in her past transform her into a monster rides a women's victorian bicycle down a barren road. 
+A small dog escapes her spidery clutches.
+A girl in a house that sits on someone else's horizon weeps.
+Men who claim to be wizards roam the countryside, looking to sell fear in crystal balls.
+A storm appears on the horizon but the people pretend it isn't there. They laugh nervously if anyone reminds them of the impending doom.
 Set default and init states.
 */
 
