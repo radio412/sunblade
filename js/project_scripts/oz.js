@@ -18,7 +18,7 @@ THREE   https://threejs.org/
 */
 
 /*
-Everything is black and white. 
+Everything is black and white.
 An old woman who has had something terrible happen in her past has transformed into a monster.
 She rides a women's victorian bicycle down a barren road, but the nearest place seems impossibly far away, even on a bicycle.
 A small dog escapes her basket.
@@ -28,7 +28,7 @@ A storm appears on the horizon but the people pretend it isn't there. They laugh
 Set default and init states. Follow the yellow brick road.
 */
 
-Dorothy = function (mapBoxKey){
+Oz = function (mapBoxKey){
   this.mapBoxKey = mapBoxKey;
   this.date = {};
   this.htmlElements = {};
@@ -51,7 +51,7 @@ Dorothy = function (mapBoxKey){
 All the world turns to color.
 You can turn back now, but all the possibilities here draw you further out, like a rip tide, and you're under and gone.
 */
-Dorothy.prototype.clickHeels = function(e,tl,tr,bl,br){
+Oz.prototype.clickHeels = function(e,tl,tr,bl,br){
   var scope = this;
   this.htmlElements.tl = tl;
   this.htmlElements.tr = tr;
@@ -79,7 +79,7 @@ Dorothy.prototype.clickHeels = function(e,tl,tr,bl,br){
 }
 
 //this is how you add a view of a built environment. In this case, an environment is a unique scene. If an environment is already projected by some other camera and controls, you can still reuse it and create multiple projections of the same environment.
-Dorothy.prototype.addProjector = function(viewName, controlType, element, environment, cameraStart, resizeWithDom){
+Oz.prototype.addProjector = function(viewName, controlType, element, environment, cameraStart, resizeWithDom){
   var scope = this;
   var c = this.addCamera(viewName, "PerspectiveCamera", {fov:35, aspect:element.clientWidth/element.clientHeight, near:1, far:40000}, cameraStart);
   var r = this.addRenderer( viewName, "WebGLRenderer", element.clientHeight, element.clientWidth, 0xCCCCCC, viewName);
@@ -93,12 +93,12 @@ Dorothy.prototype.addProjector = function(viewName, controlType, element, enviro
 }
 
 //implement stereoscopic views
-Dorothy.prototype.addVR = function(){
+Oz.prototype.addVR = function(){
 
 }
 
 //add a grid helper
-Dorothy.prototype.showGrid = function(size, divisions){
+Oz.prototype.showGrid = function(size, divisions){
   if(this.gridHelper == false){
     this.gridHelper = new THREE.GridHelper( size, divisions );
   }
@@ -107,20 +107,20 @@ Dorothy.prototype.showGrid = function(size, divisions){
   this.gridHelper.add(axis);
 }
 
-Dorothy.prototype.hideGrid = function(){
+Oz.prototype.hideGrid = function(){
   this.removeObject(this.gridHelper, "default");
 }
 
 //when the user resizes the browser, or the browser turns orientation on mobile devices we need to reset the cameras. This function runs all the functions added with each projector.
-Dorothy.prototype.processResizeStack = function(){
+Oz.prototype.processResizeStack = function(){
   for(var i in this.resizeStack){
     this.resizeStack[i]();
   }
   this.processRenderStack();
 }
 
-//The bottle had but one label and all it said was drink this. Add a function to deal with resizing of the dom. This is a factory for a standard resize of the canvas and div using a typical webGL Renderer. The user can skip this and add their own function to the resizeStack object if your rendering some other way.  
-Dorothy.prototype.addToResizeStack = function(name, element, camera, renderer){
+//The bottle had but one label and all it said was drink this. Add a function to deal with resizing of the dom. This is a factory for a standard resize of the canvas and div using a typical webGL Renderer. The user can skip this and add their own function to the resizeStack object if your rendering some other way.
+Oz.prototype.addToResizeStack = function(name, element, camera, renderer){
   var scope = this;
   this.resizeStack[name] = function(){
     camera.aspect = element.clientWidth / element.clientHeight;
@@ -130,12 +130,12 @@ Dorothy.prototype.addToResizeStack = function(name, element, camera, renderer){
 }
 
 //remove a function from the resizeStack by name.
-Dorothy.prototype.removeFromResizeStack = function(name){
+Oz.prototype.removeFromResizeStack = function(name){
   delete this.resizeStack[name];
 }
 
 //we use one resize listener, no more. STFU. This way there's only one, Neo. Ever. There's no abandoned events floating around leaking all over your ram. If you need something to happen on resize, add a function to this resizeStack object. If you put in a new resize function, I don't even know you.
-Dorothy.prototype.resizeWithDom = function(element, name, camera, renderer){
+Oz.prototype.resizeWithDom = function(element, name, camera, renderer){
   if(this.resizeStackListener == undefined){
     var scope = this;
     window.addEventListener( 'resize', function () {
@@ -146,7 +146,7 @@ Dorothy.prototype.resizeWithDom = function(element, name, camera, renderer){
 }
 
 //This method of rendering allows us to add multiple renders for multiple renderers, meaning we can have multiple cameras projecting on the same scene very easily. In the case of this class, a scene is called an environment.
-Dorothy.prototype.processRenderStack = function(){
+Oz.prototype.processRenderStack = function(){
   for(var i in this.renderStack){
     this.renderStack[i]();
   }
@@ -157,7 +157,7 @@ Dorothy.prototype.processRenderStack = function(){
 }
 
 //Add a renderer to update when things in the scene change or a controls object is utilized. An enhancememnt is to render only the scene affected.
-Dorothy.prototype.addToRenderStack = function(v, name, r, c){
+Oz.prototype.addToRenderStack = function(v, name, r, c){
   var scope = this;
   this.renderStack[v] = function(){
     r.render(scope.scenes[name], c);
@@ -166,39 +166,39 @@ Dorothy.prototype.addToRenderStack = function(v, name, r, c){
 }
 
 //Remove a renderer from the renderstack. this means any changes made to the model won't be sent to that renderer. But the scene is not preserved.
-Dorothy.prototype.removeFromRenderStack = function(name){
+Oz.prototype.removeFromRenderStack = function(name){
   delete this.renderStack[name];
   this.processRenderStack();
 }
 
 //add a camera. Instead of adding cameras with anaonmyous calls, we track them, own them, and keep them listed so more than one projector could use any camera to flip through cameras.
-Dorothy.prototype.addCamera = function(name, type, cameraProperties, position){
+Oz.prototype.addCamera = function(name, type, cameraProperties, position){
   this.cameras[name] = new THREE[type](cameraProperties.fov, cameraProperties.aspect, cameraProperties.near, cameraProperties.far);
   this.cameras[name].position.set(position.x, position.y, position.z);
   return this.cameras[name];
 }
 
 //imagine if we had multiple scenes sharing objects! Maybe one is optimized for camera views that are over head and further away. that scene could decimate meshes and textures for example without affecting other scenes. .
-Dorothy.prototype.addScene = function(name){
+Oz.prototype.addScene = function(name){
   this.scenes[name] = new THREE.Scene();
   return this.scenes[name];
 }
 
 //Have you been reading any of the other comments? If so, you know whay it would be cool to have multiple controls to switch through.
-Dorothy.prototype.addControls = function(name, type, camera, element){
+Oz.prototype.addControls = function(name, type, camera, element){
   this.controls[name] = new THREE[type](camera, element);
   return this.controls[name];
 }
 
 // this allows us to add objects to the scene. You can add anything you want, lights, objects, rays, sharks, lasers, chairs, chickens wearing sneakers
-Dorothy.prototype.addObject = function(object, scene){
+Oz.prototype.addObject = function(object, scene){
   this.scenes[scene].add(object);
   this.processRenderStack();
   return object;
 }
 
 //remove and dispose of an object. Set dispose to false if you want to keep it in ram.
-Dorothy.prototype.removeObject = function(object, scene, dispose){
+Oz.prototype.removeObject = function(object, scene, dispose){
   this.scenes[scene].remove(object);
   this.processRenderStack();
   if(dispose == true){
@@ -210,7 +210,7 @@ Dorothy.prototype.removeObject = function(object, scene, dispose){
 }
 
 // save and track renderers, switch renderers among scenes, projections, controls.
-Dorothy.prototype.addRenderer = function(name, type, w, h, c, e){
+Oz.prototype.addRenderer = function(name, type, w, h, c, e){
   var r = this.renderers[name] = new THREE[type]({antialias:true});
   r.setSize(h, w);
   r.setClearColor(c);
@@ -222,12 +222,12 @@ Dorothy.prototype.addRenderer = function(name, type, w, h, c, e){
 }
 
 //turn down the lights, open a bottle. Set the mood.
-Dorothy.prototype.colorSun = function(scene){
+Oz.prototype.colorSun = function(scene){
 
 }
 
 //Set the environment to time lapse. the MoebiusStone function must be called first to place the sun, otherwise this function just returns before doing anything.
-Dorothy.prototype.toggleTimeLapse = function(scene, inc, type){
+Oz.prototype.toggleTimeLapse = function(scene, inc, type){
   if(scene == undefined){
     scene = "default";
   }
@@ -263,7 +263,7 @@ The position of the sun in this function is NOT an orbit position! You cannot us
 
 "I could have done better." - Dr Stephen Strange
 */
-Dorothy.prototype.moebiusStone = function(date, location, radius, scene){
+Oz.prototype.moebiusStone = function(date, location, radius, scene){
 
   if(scene == undefined){
     scene = "default";
@@ -302,7 +302,7 @@ Load an external OBJ file with mtl file automagically. This does not put the obj
 This is a magic function in that it's doing things in a way you don't expect. It can only handle one mtl file per obj file. If you're wisest of wizards, please feel free to add multi-mtl support, but beware the twisty passages all different. You're likely to be attacked by a Gru.
 This function loads the obj file twice, but assumes the second load is cached in ram. Don't give me "this is a hack" crap though. Why not use the cache to our advantage for once? What are you, the cache police?
 */
-Dorothy.prototype.magicLoadOBJ = function(path, handler, callback, pmanager){
+Oz.prototype.magicLoadOBJ = function(path, handler, callback, pmanager){
 
   var scope = this;
 
@@ -360,7 +360,7 @@ Let's add some terrain capability to the app. THis isn't working yet.
 This function contains some functions for converting lat long to slippy tile coordinates as defined by http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#ECMAScript_.28JavaScript.2FActionScript.2C_etc..29
 This should of course be in a utilities class, but this function should be used rarely anyways... you know what, nevermind. I am not going to sit here and justify myself to you. I'm my own person, and I deserve love too. Also, Check out the hook while my DJ revolves it.
 */
-Dorothy.prototype.showTerrain = function(scene){
+Oz.prototype.showTerrain = function(scene){
   var zoom = 8;
   if(scene == undefined){
     scene = "default";
@@ -401,43 +401,43 @@ Dorothy.prototype.showTerrain = function(scene){
 
 }
 
-Dorothy.prototype.render = function(){
+Oz.prototype.render = function(){
 
 }
 
 
-Dorothy.prototype.GISEnable = function(location){
+Oz.prototype.GISEnable = function(location){
   this.location = location;
 }
 
-Dorothy.prototype.addHTMLPage = function(url,scene, size, scale, webGLMesh, z, name, opacity, offset){
+Oz.prototype.addHTMLPage = function(url,scene, size, scale, webGLMesh, z, name, opacity, offset){
 
 }
 
-Dorothy.prototype.onGroundMapMove = function(){
+Oz.prototype.onGroundMapMove = function(){
 
 }
 
-Dorothy.prototype.getLatLngOfWorldPoint = function(){
+Oz.prototype.getLatLngOfWorldPoint = function(){
 
 }
 
-Dorothy.prototype.onCameraChange = function(){
+Oz.prototype.onCameraChange = function(){
 
 }
 
-Dorothy.prototype.onGroundMapInit = function(){
+Oz.prototype.onGroundMapInit = function(){
 
 }
 
-Dorothy.prototype.addInputEvents = function(){
+Oz.prototype.addInputEvents = function(){
 
 }
 
-Dorothy.prototype.debugMode = function(bool){
+Oz.prototype.debugMode = function(bool){
 
 }
 
-Dorothy.onGISFeature = function(){
+Oz.onGISFeature = function(){
 
 }
