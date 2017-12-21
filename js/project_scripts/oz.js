@@ -52,6 +52,7 @@ All the world turns to color.
 You can turn back now, but all the possibilities here draw you further out, like a rip tide, and you're under and gone.
 */
 Oz.prototype.clickHeels = function(e,tl,tr,bl,br){
+  /*eventually this class should allow for any number of divs and simply tile them as best as possible.*/
   var scope = this;
   this.htmlElements.tl = tl;
   this.htmlElements.tr = tr;
