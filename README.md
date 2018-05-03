@@ -12,7 +12,7 @@ Built using Three alpha 0.87: https://threejs.org/
 
 If you have a WebGL enabled browser, see it working: https://radio412.github.io/sunblade/index.html
 
-The example uses the latitude and longitude of Sydney. Change this in js/project_scripts/kansas.js: https://github.com/radio412/sunblade/blob/master/js/project_scripts/kansas.js
+The example uses the latitude and longitude of Chicago. Change this in js/project_scripts/kansas.js: https://github.com/radio412/sunblade/blob/master/js/project_scripts/kansas.js
 
 
 ![](https://radio412.github.io/sunblade/media/shogun.png)
