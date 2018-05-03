@@ -1,9 +1,5 @@
 
 
-/*
-(Vishnu) dark as clouds but glowingly...
-Here we create worlds, only time destroys them.
-*/
 
 /*
 If it's error free, it's probably boring.
@@ -17,19 +13,8 @@ suncalc https://github.com/mourner/suncalc
 THREE   https://threejs.org/
 */
 
-/*
-Everything is black and white.
-An old woman who has had something terrible happen in her past has transformed into a monster.
-She rides a women's victorian bicycle down a barren road, but the nearest place seems impossibly far away, even on a bicycle.
-A small dog escapes her basket.
-A girl in a house that sits on someone else's horizon, weeps.
-Men who claim to be wizards roam the countryside, looking to sell fear in crystal balls.
-A storm appears on the horizon but the people pretend it isn't there. They laugh, dark as clouds, if anyone reminds them of the impending doom.
-Set default and init states. Follow the yellow brick road.
-*/
-
-Oz = function (mapBoxKey){
-  this.mapBoxKey = mapBoxKey;
+Oz = function (){
+  this.upAxis = "Y";
   this.date = {};
   this.htmlElements = {};
   this.scenes = {};
@@ -44,37 +29,141 @@ Oz = function (mapBoxKey){
   this.sunPos = false;
   this.time = false;
   this.date = false;
+  this.raycaster = false;
+  this.objects = [];
+  this.tools = {};
+
+  //the default camera start positions for each view. These can be overried if defined before clickHeels is called.
+  this.camStarts = [new THREE.Vector3(6000,6000,6000),new THREE.Vector3(0,10800,0),new THREE.Vector3(1800,300,0),new THREE.Vector3(0,20,2400)];
 }
 
 
-/*this is default 4 port view, but can be overridden by the client code to instantiate whatever the heck setup they want. But this is the out of box setup. Be careful, or don't. Be crazy. Be Boring. Rewrite the code, or don't.
-All the world turns to color.
-You can turn back now, but all the possibilities here draw you further out, like a rip tide, and you're under and gone.
-*/
-Oz.prototype.clickHeels = function(e,tl,tr,bl,br){
+
+Oz.prototype.clickHeels = function(e, parentElement, screenSplit){
+
+  /*
+  (Vishnu) dark as clouds but glowingly...
+  Here we create worlds, only time destroys them.
+  */
+
+  //default number of screens to split
+  if(screenSplit == undefined){
+    screenSplit = 1;
+  }
+  //we can't split 3 screens yet. Only pairs.
+  if(screenSplit == 3){
+    screenSplit = 2;
+  }
+  //we have ama of 4 views.
+  if(screenSplit > 4){
+    screenSplit = 4;
+  }
   /*eventually this class should allow for any number of divs and simply tile them as best as possible.*/
   var scope = this;
-  this.htmlElements.tl = tl;
-  this.htmlElements.tr = tr;
-  this.htmlElements.bl = bl;
-  this.htmlElements.br = br;
+  this.parentElement = parentElement;
+  this.num = screenSplit;
+
+  var views = ["tl","tr","bl","br"];
+
+  for(var i=0; i<this.num;i++){
+    this.htmlElements[views[i]] = document.createElement("div");
+    parentElement.appendChild(this.htmlElements[views[i]]);
+  }
+
+  //Yes this could be external CSS files. But no, I added all the properties here, because this is not open to styling by some fancy pants designer. This CSS drives and requires specific JS code.
+  //Yes, I said fancy pants.
+
+  //set the CSS according to the number of viewports requested by the client code.
+
+  //set default styles:
+  this.htmlElements.tl.style["top"] = "0px";
+  this.htmlElements.tl.style["left"] = "0px";
+  this.htmlElements.tl.style["z-index"] = "1";
+  this.htmlElements.tl.style["display"] = "inline-block";
+  this.htmlElements.tl.style["vertical-align"]= "top";
+  this.htmlElements.tl.style["box-shadow"]="inset 0 0 0 0.5px rgba(0, 0, 0, 0.7)";
+  this.htmlElements.tl.style["width"] = "100%";
+  this.htmlElements.tl.style["height"] = "100%";
+
+  if(this.num == 2){
+    this.htmlElements.tl.style["width"] = "50%";
+    this.htmlElements.tl.style["height"] = "100%";
+    this.htmlElements.tr.style.cssText = this.htmlElements.tl.style.cssText;
+    this.htmlElements.tr.style["top"] = "0px";
+    this.htmlElements.tr.style["left"] = "50%";
+    this.htmlElements.tr.style["z-index"] = "2";
+  }
+
+  if(this.num == 4){
+    this.htmlElements.tl.style["width"] = "50%";
+    this.htmlElements.tl.style["height"] = "50%";
+    this.htmlElements.tr.style.cssText = this.htmlElements.tl.style.cssText;
+    this.htmlElements.br.style.cssText = this.htmlElements.tl.style.cssText;
+    this.htmlElements.bl.style.cssText = this.htmlElements.tl.style.cssText;
+
+    this.htmlElements.tr.style["top"] = "0px";
+    this.htmlElements.tr.style["left"] = "50%";
+    this.htmlElements.tr.style["z-index"] = "2";
+
+    this.htmlElements.bl.style["top"] = "50%";
+    this.htmlElements.bl.style["left"] = "0px";
+    this.htmlElements.bl.style["z-index"] = "3";
+
+    this.htmlElements.br.style["top"] = "50%";
+    this.htmlElements.br.style["left"] = "50%";
+    this.htmlElements.br.style["z-index"] = "4";
+  }
+
+
+
   var environment = e;
   if(environment == undefined){
     environment = "default";
   }
-  this.addScene(environment, "Scene");
-  var views = ["tl","tr","bl","br"];
-  if(this.camStarts == undefined){
-    camStarts = [new THREE.Vector3(.5,.5,.5),new THREE.Vector3(0,100,0),new THREE.Vector3(100,0,0),new THREE.Vector3(0,0,200)];
-  }
-  for (var i in views){
-    var v = views[i];
-    if(this.htmlElements[v] != undefined){
-      this.addProjector(v, "OrbitControls", this.htmlElements[v], environment, this.camStarts[i], true);
-    }
+
+
+
+  var scene = this.addScene(environment, "Scene");
+
+  // SKYDOME
+  var vertexShader  =
+  "varying vec3 vWorldPosition;"+
+  "void main() {"+
+    "vec4 worldPosition = modelMatrix * vec4( position, 1.0 );"+
+    "vWorldPosition = worldPosition.xyz;"+
+    "gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );"+
+  "}";
+
+  var fragmentShader =
+  "uniform vec3 topColor;"+
+  "uniform vec3 bottomColor;"+
+  "uniform float offset;"+
+  "uniform float exponent;"+
+  "varying vec3 vWorldPosition;"+
+  "void main() {"+
+    "float h = normalize( vWorldPosition + offset ).y;"+
+    "gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );"+
+  "}";
+	var uniforms = {
+		topColor:    { value: new THREE.Color( 0x0077ff ) },
+		//bottomColor: { value: new THREE.Color( 0xd3c1af ) },
+    bottomColor: { value: new THREE.Color( 0xCCCCCC ) },
+		offset:      { value: 0 },
+		exponent:    { value: 0.6 }
+	};
+	var skyGeo = new THREE.SphereGeometry( 400000, 32, 15 );
+	var skyMat = new THREE.ShaderMaterial( { vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide } );
+	var sky = new THREE.Mesh( skyGeo, skyMat );
+  sky.rotation.x = -Math.PI / 2;
+	scene.add( sky );
+
+
+  var c = 0;
+  for(var i in scope.htmlElements ){
+      this.addProjector(i, "OrbitControls", this.htmlElements[i], environment, this.camStarts[c++], true);
   }
 
-  var ambientLight = new THREE.AmbientLight(0xffffff);
+  var ambientLight = new THREE.AmbientLight(0xfffff3);
   this.addObject(ambientLight, "default");
 
 }
@@ -82,7 +171,7 @@ Oz.prototype.clickHeels = function(e,tl,tr,bl,br){
 //this is how you add a view of a built environment. In this case, an environment is a unique scene. If an environment is already projected by some other camera and controls, you can still reuse it and create multiple projections of the same environment.
 Oz.prototype.addProjector = function(viewName, controlType, element, environment, cameraStart, resizeWithDom){
   var scope = this;
-  var c = this.addCamera(viewName, "PerspectiveCamera", {fov:35, aspect:element.clientWidth/element.clientHeight, near:1, far:40000}, cameraStart);
+  var c = this.addCamera(viewName, "PerspectiveCamera", {fov:20, aspect:element.clientWidth/element.clientHeight, near:.01, far:6000000}, cameraStart);
   var r = this.addRenderer( viewName, "WebGLRenderer", element.clientHeight, element.clientWidth, 0xCCCCCC, viewName);
   this.addToRenderStack(viewName, environment, r, c);
   this.addControls(viewName, controlType, this.cameras[viewName], this.renderers[viewName].domElement);
@@ -90,6 +179,7 @@ Oz.prototype.addProjector = function(viewName, controlType, element, environment
   if(resizeWithDom == true){
     this.resizeWithDom(viewName, element, c, r);
   }
+  this.addMouseEvents(viewName, element);
   this.processRenderStack();
 }
 
@@ -110,6 +200,7 @@ Oz.prototype.showGrid = function(size, divisions){
 
 Oz.prototype.hideGrid = function(){
   this.removeObject(this.gridHelper, "default");
+  this.gridHelper = false;
 }
 
 //when the user resizes the browser, or the browser turns orientation on mobile devices we need to reset the cameras. This function runs all the functions added with each projector.
@@ -176,6 +267,15 @@ Oz.prototype.removeFromRenderStack = function(name){
 Oz.prototype.addCamera = function(name, type, cameraProperties, position){
   this.cameras[name] = new THREE[type](cameraProperties.fov, cameraProperties.aspect, cameraProperties.near, cameraProperties.far);
   this.cameras[name].position.set(position.x, position.y, position.z);
+  if(this.upAxis.toLowerCase() == "x"){
+    this.cameras[name].up.set(1,0,0);
+  }
+  if(this.upAxis.toLowerCase() == "y"){
+    this.cameras[name].up.set(0,1,0);
+  }
+  if(this.upAxis.toLowerCase() == "z"){
+    this.cameras[name].up.set(0,0,1);
+  }
   return this.cameras[name];
 }
 
@@ -193,6 +293,7 @@ Oz.prototype.addControls = function(name, type, camera, element){
 
 // this allows us to add objects to the scene. You can add anything you want, lights, objects, rays, sharks, lasers, chairs, chickens wearing sneakers
 Oz.prototype.addObject = function(object, scene){
+  console.log(this.scenes[scene]);
   this.scenes[scene].add(object);
   this.processRenderStack();
   return object;
@@ -212,10 +313,13 @@ Oz.prototype.removeObject = function(object, scene, dispose){
 
 // save and track renderers, switch renderers among scenes, projections, controls.
 Oz.prototype.addRenderer = function(name, type, w, h, c, e){
-  var r = this.renderers[name] = new THREE[type]({antialias:true});
+  var r = this.renderers[name] = new THREE[type]({antialias:true, alpha:true});
   r.setSize(h, w);
-  r.setClearColor(c);
+  r.alpha = true;
+  r.setClearColor(c, 0);
   r.antialias = true;
+  r.shadowMapEnabled = true;
+  r.shadowMapType = THREE.PCFSoftShadowMap;
   if(e != undefined){
     this.htmlElements[e].appendChild(r.domElement);
   }
@@ -247,7 +351,8 @@ Oz.prototype.toggleTimeLapse = function(scene, inc, type){
       lapse = setInterval(function () {
           var addMin = moment(scope.scenes[scene].userData.date).add(inc, type);
           scope.scenes[scene].userData.date = addMin.toDate();
-          $("#con").html(scope.scenes[scene].userData.date);
+          tin("#con").html(scope.scenes[scene].userData.date);
+          //instead of manipulating html in this class, it's likely better to have some type of on event for outputs, probably with event type name and an object. onOutput(name, object)
           scope.moebiusStone(scope.scenes[scene].userData.date, scope.scenes[scene].userData.location, scope.scenes[scene].userData.sunDistance, scene);
       }, 10);
   } else {
@@ -258,14 +363,22 @@ Oz.prototype.toggleTimeLapse = function(scene, inc, type){
 
 
 /*
-This function creates a sun if one does not exist. If one exists, it modifies the sun instead.
-The position of the sun is determined by the latitude, longitude and a date. It can be any date, any latitude any longitude.
+This function creates a sun if one does not exist.
+Let's create one if not.
+But really what is but a glow with a rise, over run.
+It's so far away they say, a single ray calculation will do in the mathematical models.
+When we create a sun we put the world in an orbit,
+we give it an axis,
+
 The position of the sun in this function is NOT an orbit position! You cannot use this to set the sun around a globe.
 
 "I could have done better." - Dr Stephen Strange
 */
 Oz.prototype.moebiusStone = function(date, location, radius, scene){
-
+  if(this.gridHelper != false){
+    radius = -this.gridHelper.geometry.boundingSphere.radius;
+  }
+  //radius = 6000000;
   if(scene == undefined){
     scene = "default";
   }
@@ -277,23 +390,62 @@ Oz.prototype.moebiusStone = function(date, location, radius, scene){
   var sunPosition = SunCalc.getPosition(date, location.lat, location.lng);
 
   var a = radius * Math.cos(sunPosition.altitude);
-  var x = a * Math.cos(sunPosition.azimuth);
-  var y = radius * Math.sin(sunPosition.altitude);
-  var z = a * Math.sin(sunPosition.azimuth);
+  var x = -a * Math.cos(sunPosition.azimuth);
+  var y = -radius * Math.sin(sunPosition.altitude);
+  var z = -a * Math.sin(sunPosition.azimuth);
 
   var sun = this.scenes[scene].userData.sun;
+  var sunlight = this.scenes[scene].userData.sunlight;
+  var sunlightHelper = this.scenes[scene].userData.sunlightHelper;
+
   if(sun == undefined){
-    var sun = this.scenes[scene].userData.sun = new THREE.Mesh(new THREE.SphereGeometry(10,16,16), new THREE.MeshBasicMaterial({
-        color: 0xffff00
+    var sun = this.scenes[scene].userData.sun = new THREE.Mesh(new THREE.SphereGeometry(50,16,16), new THREE.MeshBasicMaterial({
+        color: 0xfffff3
     }));
     this.addObject(sun, scene);
+
+    //let there be light
+    var sunlight = this.scenes[scene].userData.sunlight = new THREE.DirectionalLight( 0xffffff, 1 );
+    sunlight.castShadow = true;
+    sunlight.shadowCameraVisible = true;
+
+    sunlight.shadow.width = sunlight.shadow.height = 1024 * 5;
+    var di = 3500;
+    sunlight.shadow.camera.left = -di;
+    sunlight.shadow.camera.right = di;
+    sunlight.shadow.camera.top = di;
+    sunlight.shadow.camera.bottom = -di;
+    sunlight.shadow.camera.near = 5000;
+    sunlight.shadow.camera.far = 15000;
+    sunlight.shadow.bias = -0.0005;
+    this.addObject(sunlight, scene);
+
+    // var helper = this.scenes[scene].userData.sunlightHelper = new THREE.DirectionalLightHelper( sunlight, 500);
+    // this.addObject(helper, scene);
+
+    var north = this.scenes[scene].userData.north = new THREE.Mesh(new THREE.ConeGeometry(), new THREE.MeshBasicMaterial({
+        color: 0x000000
+    }));
+    north.position.x = -2000;
+    if(this.gridHelper != false){
+      north.position.x = -this.gridHelper.geometry.boundingSphere.radius;
+    }
+    this.addObject(north, scene);
+    this.processRenderStack();
   }
 
   sun.position.setX(x);
   sun.position.setY(y);
   sun.position.setZ(z);
 
-  this.processRenderStack(sun);
+  sunlight.position.setX(x);
+  sunlight.position.setY(y);
+  sunlight.position.setZ(z);
+  if(sunlightHelper != undefined){
+    sunlightHelper.update();
+  }
+
+  this.processRenderStack();
 }
 
 
@@ -325,7 +477,6 @@ Oz.prototype.magicLoadOBJ = function(path, handler, callback, pmanager){
     };
     manager.onLoad = function ( ) {
       callback("endOfFiles");
-    	console.log( 'Loading complete!');
     };
     manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
       callback("startedAFile", url, itemsLoaded, itemsTotal);
@@ -354,6 +505,47 @@ Oz.prototype.magicLoadOBJ = function(path, handler, callback, pmanager){
       });
     }
 }
+
+
+Oz.prototype.simpleLoadOBJ = function(path, handler, callback, pmanager){
+
+  var scope = this;
+
+  if(callback == undefined){
+    callback = function(){
+      return;
+    }
+  }
+  if(handler == undefined){
+    return "You must specify a handler to store the resulting file.";
+  }
+
+  var manager = pmanager;
+
+  if(manager == undefined){
+    manager = new THREE.LoadingManager();
+    manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
+      callback("startedAFile", url, itemsLoaded, itemsTotal);
+    };
+    manager.onLoad = function ( ) {
+      callback("endOfFiles");
+    };
+    manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
+      callback("startedAFile", url, itemsLoaded, itemsTotal);
+    };
+    manager.onError = function ( url ) {
+      callback("errorLoadingAFile", url);
+    };
+  }
+
+  var loader = new THREE.OBJLoader( manager );
+  var objpath = path;
+  loader.load( objpath, function ( object ) {
+      handler(object, "success");
+  });
+}
+
+
 
 /*
 Let's add some terrain capability to the app. THis isn't working yet.
@@ -384,12 +576,10 @@ Oz.prototype.showTerrain = function(scene){
 
   var loc = this.scenes[scene].userData.location;
 
-  console.log(loc.lat, loc.lng);
   var x = lng2tile(loc.lng);
   var y = lat2tile(loc.lat);
-  console.log(x, y);
 
-  console.log("https://api.mapbox.com/v4/mapbox.terrain-rgb/"+zoom+"/"+(lng2tile(loc.lng)-1)+"/"+(lat2tile(loc.lat)-1)+".pngraw?access_token="+this.mapBoxKey);
+  //console.log("https://api.mapbox.com/v4/mapbox.terrain-rgb/"+zoom+"/"+(lng2tile(loc.lng)-1)+"/"+(lat2tile(loc.lat)-1)+".pngraw?access_token="+this.mapBoxKey);
 
   //omg yuck. help. this is drowning in stupid.
   var tileExtent = 5;
@@ -398,14 +588,106 @@ Oz.prototype.showTerrain = function(scene){
   var negativeExtentX = -tileExtent;
   var negativeExtentY = -tileExtent;
 
-
-
 }
+
+Oz.prototype.addMouseEvents = function(viewName, element){
+  var scope = this;
+  element.addEventListener("click", function(event){
+    var object = {
+      viewName: viewName,
+      renderer: scope.renderers[viewName]
+    }
+    scope.on("Click", event, object);
+  });
+  element.addEventListener("dblclick", function(event){
+    var object = {
+      viewName: viewName,
+      renderer: scope.renderers[viewName]
+    }
+    scope.on("DoubleClick", event, object);
+  });
+  element.addEventListener("mousemove", function(event){
+    var object = {
+      viewName: viewName,
+      renderer: scope.renderers[viewName]
+    }
+    scope.on("Move", event, object);
+  });
+  element.addEventListener("mouseup", function(event){
+    var object = {
+      viewName: viewName,
+      renderer: scope.renderers[viewName]
+    }
+    scope.on("Up", event, object);
+  });
+  element.addEventListener("mouseenter", function(event){
+    var object = {
+      viewName: viewName,
+      renderer: scope.renderers[viewName]
+    }
+    scope.on("Enter", event, object);
+  });
+  element.addEventListener("mouseleave", function(event){
+    var object = {
+      viewName: viewName,
+      renderer: scope.renderers[viewName]
+    }
+    scope.on("Leave", event, object);
+  });
+  element.addEventListener("mousedown", function(event){
+    var object = {
+      viewName: viewName,
+      renderer: scope.renderers[viewName]
+    }
+    scope.on("Down", event, object);
+  });
+  element.addEventListener("mouseenter", function(event){
+    var object = {
+      viewName: viewName,
+      renderer: scope.renderers[viewName]
+    }
+    scope.on("Enter", event, object);
+  });
+}
+
+Oz.prototype.implementTool = function(name, tool){
+  tool.world = this;
+  this.tools[name] = tool;
+}
+Oz.prototype.decomissionTool = function(name, tool){
+  delete this.tools[name];
+}
+
+Oz.prototype.on = function(eventName, nativeEvent, object){
+  var toolEventName = "on"+eventName+"Handler";
+  for(var i in this.tools){
+    var currTool = this.tools[i];
+    if (currTool[toolEventName] !== undefined) {
+        currTool[toolEventName](eventName, nativeEvent, object);
+    }
+  }
+}
+
+Oz.prototype.fetchRayCastTop = function (event, arr, viewName) {
+		var testSet = arr;
+		if (this.raycaster === false) {
+				this.raycaster = new THREE.Raycaster();
+		}
+		var mouse = new THREE.Vector2();
+		mouse.x = event.offsetX / this.renderers[viewName].domElement.width * 2 - 1;
+		mouse.y = -(event.offsetY / this.renderers[viewName].domElement.height) * 2 + 1;
+		this.raycaster.setFromCamera(mouse, this.cameras[viewName]);
+		var intersects = this.raycaster.intersectObjects(testSet, true);
+		object = undefined;
+		if (intersects.length > 0) {
+				object = intersects[0];
+		}
+		return object;
+};
 
 Oz.prototype.render = function(){
-
+  this.processRenderStack();
 }
-
 
 Oz.prototype.GISEnable = function(location){
   this.location = location;
@@ -431,14 +713,45 @@ Oz.prototype.onGroundMapInit = function(){
 
 }
 
-Oz.prototype.addInputEvents = function(){
-
-}
-
 Oz.prototype.debugMode = function(bool){
 
 }
 
 Oz.onGISFeature = function(){
 
+}
+
+
+
+
+
+
+/*example tool plugin*/
+
+
+var ozPickerTool = function(objects, callback){
+  this.objects = objects;
+  this.callback = callback;
+  this.moved = false;
+  this.down = false;
+}
+ozPickerTool.prototype.onDownHandler = function(eventName, nativeEvent, object){
+  this.moved = false;
+  this.down = true;
+  this.pick(eventName, nativeEvent,object);
+}
+ozPickerTool.prototype.onMoveHandler = function(eventName, nativeEvent, object){
+  this.moved = true;
+  if(this.down == false){
+    this.pick(eventName, nativeEvent, object);
+  }
+}
+ozPickerTool.prototype.onUpHandler = function(eventName, nativeEvent, object){
+  if(this.moved == false){
+    this.pick(eventName, nativeEvent, object);
+  }
+  this.down = false;
+}
+ozPickerTool.prototype.pick = function(eventName, nativeEvent, object){
+    this.callback(eventName, this.world.fetchRayCastTop(nativeEvent, this.objects, object.viewName));
 }
