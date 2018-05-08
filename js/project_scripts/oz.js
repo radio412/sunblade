@@ -318,8 +318,8 @@ Oz.prototype.addRenderer = function(name, type, w, h, c, e){
   r.alpha = true;
   r.setClearColor(c, 0);
   r.antialias = true;
-  r.shadowMapEnabled = true;
-  r.shadowMapType = THREE.PCFSoftShadowMap;
+  r.shadowMap.enabled = true;
+  r.shadowMap.type = THREE.PCFSoftShadowMap;
   if(e != undefined){
     this.htmlElements[e].appendChild(r.domElement);
   }
@@ -364,11 +364,6 @@ Oz.prototype.toggleTimeLapse = function(scene, inc, type){
 
 /*
 This function creates a sun if one does not exist.
-Let's create one if not.
-But really what is but a glow with a rise, over run.
-It's so far away they say, a single ray calculation will do in the mathematical models.
-When we create a sun we put the world in an orbit,
-we give it an axis,
 
 The position of the sun in this function is NOT an orbit position! You cannot use this to set the sun around a globe.
 
@@ -407,7 +402,11 @@ Oz.prototype.moebiusStone = function(date, location, radius, scene){
     //let there be light
     var sunlight = this.scenes[scene].userData.sunlight = new THREE.DirectionalLight( 0xffffff, 1 );
     sunlight.castShadow = true;
-    sunlight.shadowCameraVisible = true;
+
+    var camHelper = new THREE.CameraHelper( sunlight.shadow.camera );
+
+    this.addObject(camHelper, scene);
+    //sunlight.shadowCameraVisible = true;
 
     sunlight.shadow.width = sunlight.shadow.height = 1024 * 5;
     var di = 3500;
@@ -720,7 +719,9 @@ Oz.prototype.debugMode = function(bool){
 Oz.onGISFeature = function(){
 
 }
+Oz.prototype.addSpriteLabelToObject = function(object, str, styleObject){
 
+}
 
 
 

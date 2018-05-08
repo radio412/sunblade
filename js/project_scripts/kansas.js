@@ -15,7 +15,7 @@ function init(){// mapbox is not yet implemented
 
   var chicago = {lat:41.8862036,lng:-87.6303398};
   toto.moebiusStone(d, chicago, 2000);
-  //toto.toggleTimeLapse("default", 15, "minutes");
+  toto.toggleTimeLapse("default", 15, "minutes");
 
 
 
