@@ -15,26 +15,20 @@ THREE   https://threejs.org/
 
 Oz = function (){
   this.upAxis = "Y";
-  this.date = {};
   this.htmlElements = {};
   this.scenes = {};
   this.cameras = {};
   this.renderers = {};
   this.controls = {};
-  this.renderQueue = 0;
   this.renderStack = {};
   this.resizeStack = {};
-  this.suns = {};
   this.gridHelper = false;
-  this.sunPos = false;
-  this.time = false;
-  this.date = false;
   this.raycaster = false;
-  this.objects = [];
   this.tools = {};
-
+  this.quality = 4;
+  this.maxSun = 0;
   //the default camera start positions for each view. These can be overried if defined before clickHeels is called.
-  this.camStarts = [new THREE.Vector3(6000,6000,6000),new THREE.Vector3(0,10800,0),new THREE.Vector3(1800,300,0),new THREE.Vector3(0,20,2400)];
+  this.camStarts = [new THREE.Vector3(200,200,200),new THREE.Vector3(0,10800,0),new THREE.Vector3(1800,300,0),new THREE.Vector3(0,20,2400)];
 }
 
 
@@ -46,6 +40,58 @@ Oz.prototype.clickHeels = function(e, parentElement, screenSplit){
   Here we create worlds, only time destroys them.
   */
 
+
+
+
+  this.environment = e;
+  if(this.environment == undefined){
+    this.environment = this.environment;
+  }
+
+  this.setViews(parentElement, screenSplit);
+
+  var scene = this.addScene(this.environment, "Scene");
+
+  // SKYDOME
+  var vertexShader  =
+  "varying vec3 vWorldPosition;"+
+  "void main() {"+
+    "vec4 worldPosition = modelMatrix * vec4( position, 1.0 );"+
+    "vWorldPosition = worldPosition.xyz;"+
+    "gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );"+
+  "}";
+
+  var fragmentShader =
+  "uniform vec3 topColor;"+
+  "uniform vec3 bottomColor;"+
+  "uniform float offset;"+
+  "uniform float exponent;"+
+  "varying vec3 vWorldPosition;"+
+  "void main() {"+
+    "float h = normalize( vWorldPosition + offset ).y;"+
+    "gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );"+
+  "}";
+	var uniforms = {
+		topColor:    { value: new THREE.Color( 0x0077ff ) },
+		//bottomColor: { value: new THREE.Color( 0xd3c1af ) },
+    bottomColor: { value: new THREE.Color( 0xCCCCCC ) },
+		offset:      { value: 0 },
+		exponent:    { value: 0.6 }
+	};
+	var skyGeo = new THREE.SphereGeometry( 400000, 32, 15 );
+	var skyMat = new THREE.ShaderMaterial( { vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide } );
+	var sky = new THREE.Mesh( skyGeo, skyMat );
+  sky.rotation.x = -Math.PI / 2;
+	scene.add( sky );
+
+
+  this.enableViews();
+
+
+
+}
+
+Oz.prototype.setViews = function(parentElement, screenSplit){
   //default number of screens to split
   if(screenSplit == undefined){
     screenSplit = 1;
@@ -113,61 +159,15 @@ Oz.prototype.clickHeels = function(e, parentElement, screenSplit){
     this.htmlElements.br.style["left"] = "50%";
     this.htmlElements.br.style["z-index"] = "4";
   }
-
-
-
-  var environment = e;
-  if(environment == undefined){
-    environment = "default";
-  }
-
-
-
-  var scene = this.addScene(environment, "Scene");
-
-  // SKYDOME
-  var vertexShader  =
-  "varying vec3 vWorldPosition;"+
-  "void main() {"+
-    "vec4 worldPosition = modelMatrix * vec4( position, 1.0 );"+
-    "vWorldPosition = worldPosition.xyz;"+
-    "gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );"+
-  "}";
-
-  var fragmentShader =
-  "uniform vec3 topColor;"+
-  "uniform vec3 bottomColor;"+
-  "uniform float offset;"+
-  "uniform float exponent;"+
-  "varying vec3 vWorldPosition;"+
-  "void main() {"+
-    "float h = normalize( vWorldPosition + offset ).y;"+
-    "gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );"+
-  "}";
-	var uniforms = {
-		topColor:    { value: new THREE.Color( 0x0077ff ) },
-		//bottomColor: { value: new THREE.Color( 0xd3c1af ) },
-    bottomColor: { value: new THREE.Color( 0xCCCCCC ) },
-		offset:      { value: 0 },
-		exponent:    { value: 0.6 }
-	};
-	var skyGeo = new THREE.SphereGeometry( 400000, 32, 15 );
-	var skyMat = new THREE.ShaderMaterial( { vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.BackSide } );
-	var sky = new THREE.Mesh( skyGeo, skyMat );
-  sky.rotation.x = -Math.PI / 2;
-	scene.add( sky );
-
-
-  var c = 0;
-  for(var i in scope.htmlElements ){
-      this.addProjector(i, "OrbitControls", this.htmlElements[i], environment, this.camStarts[c++], true);
-  }
-
-  var ambientLight = new THREE.AmbientLight(0xfffff3);
-  this.addObject(ambientLight, "default");
-
 }
 
+Oz.prototype.enableViews = function(){
+  var c = 0;
+  for(var i in this.htmlElements ){
+      this.addProjector(i, "OrbitControls", this.htmlElements[i], this.environment, this.camStarts[c++], true);
+  }
+  console.log(this);
+}
 //this is how you add a view of a built environment. In this case, an environment is a unique scene. If an environment is already projected by some other camera and controls, you can still reuse it and create multiple projections of the same environment.
 Oz.prototype.addProjector = function(viewName, controlType, element, environment, cameraStart, resizeWithDom){
   var scope = this;
@@ -193,13 +193,13 @@ Oz.prototype.showGrid = function(size, divisions){
   if(this.gridHelper == false){
     this.gridHelper = new THREE.GridHelper( size, divisions );
   }
-  this.addObject(this.gridHelper, "default");
+  this.addObject(this.gridHelper, this.environment);
   var axis = new THREE.AxisHelper(250);
   this.gridHelper.add(axis);
 }
 
 Oz.prototype.hideGrid = function(){
-  this.removeObject(this.gridHelper, "default");
+  this.removeObject(this.gridHelper, this.environment);
   this.gridHelper = false;
 }
 
@@ -239,6 +239,7 @@ Oz.prototype.resizeWithDom = function(element, name, camera, renderer){
 
 //This method of rendering allows us to add multiple renders for multiple renderers, meaning we can have multiple cameras projecting on the same scene very easily. In the case of this class, a scene is called an environment.
 Oz.prototype.processRenderStack = function(){
+  console.log("render");
   for(var i in this.renderStack){
     this.renderStack[i]();
   }
@@ -332,15 +333,12 @@ Oz.prototype.colorSun = function(scene){
 }
 
 //Set the environment to time lapse. the MoebiusStone function must be called first to place the sun, otherwise this function just returns before doing anything.
-Oz.prototype.toggleTimeLapse = function(scene, inc, type){
+Oz.prototype.toggleTimeLapse = function(scene, inc){
   if(scene == undefined){
-    scene = "default";
+    scene = this.environment;
   }
   if(inc == undefined){
     inc = 5;
-  }
-  if(type == undefined){
-    type = "minutes";
   }
   if(this.scenes[scene].userData.date == undefined){
     return;
@@ -349,9 +347,13 @@ Oz.prototype.toggleTimeLapse = function(scene, inc, type){
   var lapse = this.scenes[scene].userData.timeLapse;
   if (lapse == undefined) {
       lapse = setInterval(function () {
-          var addMin = moment(scope.scenes[scene].userData.date).add(inc, type);
+          var addMin = moment(scope.scenes[scene].userData.date).add(inc, "minutes");
           scope.scenes[scene].userData.date = addMin.toDate();
-          tin("#con").html(scope.scenes[scene].userData.date);
+          if(scope.timeZone != undefined){
+            tin("#con").html(scope.tzCorrection(scope.scenes[scene].userData.date, scope.timeZone));
+          }else{
+            tin("#con").html(scope.scenes[scene].userData.date);
+          }
           //instead of manipulating html in this class, it's likely better to have some type of on event for outputs, probably with event type name and an object. onOutput(name, object)
           scope.moebiusStone(scope.scenes[scene].userData.date, scope.scenes[scene].userData.location, scope.scenes[scene].userData.sunDistance, scene);
       }, 10);
@@ -369,13 +371,18 @@ The position of the sun in this function is NOT an orbit position! You cannot us
 
 "I could have done better." - Dr Stephen Strange
 */
+Oz.prototype.tzCorrection = function(time,zone){
+  var format = 'MMM DD, YYYY HH:mm:ss';
+  this.timeZone = zone;
+  return new Date(moment(time,format).tz(zone).format(format));
+}
 Oz.prototype.moebiusStone = function(date, location, radius, scene){
   if(this.gridHelper != false){
-    radius = -this.gridHelper.geometry.boundingSphere.radius;
+    radius = - this.gridHelper.geometry.boundingSphere.radius*2;
   }
-  //radius = 6000000;
+  //radius = 1000;
   if(scene == undefined){
-    scene = "default";
+    scene = this.environment;
   }
 
   this.scenes[scene].userData.date = date;
@@ -385,39 +392,43 @@ Oz.prototype.moebiusStone = function(date, location, radius, scene){
   var sunPosition = SunCalc.getPosition(date, location.lat, location.lng);
 
   var a = radius * Math.cos(sunPosition.altitude);
-  var x = -a * Math.cos(sunPosition.azimuth);
-  var y = -radius * Math.sin(sunPosition.altitude);
-  var z = -a * Math.sin(sunPosition.azimuth);
+  var x = a * Math.cos(sunPosition.azimuth);
+  var y = radius * Math.sin(sunPosition.altitude);
+  var z = a * Math.sin(sunPosition.azimuth);
 
   var sun = this.scenes[scene].userData.sun;
   var sunlight = this.scenes[scene].userData.sunlight;
-  var sunlightHelper = this.scenes[scene].userData.sunlightHelper;
 
   if(sun == undefined){
+    this.ambientLight = new THREE.AmbientLight(0x666666);
+    this.addObject(this.ambientLight, this.environment);
+
     var sun = this.scenes[scene].userData.sun = new THREE.Mesh(new THREE.SphereGeometry(50,16,16), new THREE.MeshBasicMaterial({
-        color: 0xfffff3
+         color: 0xffff33
     }));
     this.addObject(sun, scene);
 
     //let there be light
-    var sunlight = this.scenes[scene].userData.sunlight = new THREE.DirectionalLight( 0xffffff, 1 );
+    var sunlight = this.scenes[scene].userData.sunlight = new THREE.DirectionalLight( 0xfffff1, 1 );
     sunlight.castShadow = true;
 
-    var camHelper = new THREE.CameraHelper( sunlight.shadow.camera );
 
-    this.addObject(camHelper, scene);
-    //sunlight.shadowCameraVisible = true;
+    sunlight.shadow.mapSize.width = 1024 * this.quality;
+    sunlight.shadow.mapSize.height = 1024 * this.quality;
 
-    sunlight.shadow.width = sunlight.shadow.height = 1024 * 5;
-    var di = 3500;
+    //sunlight.shadow.width = sunlight.shadow.height = 1024 * 5;
+    var di = radius;
     sunlight.shadow.camera.left = -di;
     sunlight.shadow.camera.right = di;
     sunlight.shadow.camera.top = di;
     sunlight.shadow.camera.bottom = -di;
-    sunlight.shadow.camera.near = 5000;
-    sunlight.shadow.camera.far = 15000;
-    sunlight.shadow.bias = -0.0005;
+    sunlight.shadow.camera.near = 100;
+    sunlight.shadow.camera.far = di*2;
+    sunlight.shadow.bias = -0.0000;
     this.addObject(sunlight, scene);
+
+    // var camHelper = new THREE.CameraHelper( sunlight.shadow.camera );
+    // this.addObject(camHelper, scene);
 
     // var helper = this.scenes[scene].userData.sunlightHelper = new THREE.DirectionalLightHelper( sunlight, 500);
     // this.addObject(helper, scene);
@@ -440,10 +451,22 @@ Oz.prototype.moebiusStone = function(date, location, radius, scene){
   sunlight.position.setX(x);
   sunlight.position.setY(y);
   sunlight.position.setZ(z);
-  if(sunlightHelper != undefined){
-    sunlightHelper.update();
-  }
 
+  // var sun2 = this.scenes[scene].userData.sun = new THREE.Mesh(new THREE.SphereGeometry(50,16,16), new THREE.MeshBasicMaterial({
+  //      color: 0xffff33
+  // }));
+  // sun2.position.setX(x);
+  // sun2.position.setY(y);
+  // sun2.position.setZ(z);
+  // //this.addObject(sun2, scene);
+
+  if(y>this.maxSun){
+    this.maxSun = y;
+  }
+  if(y>0){
+    var intensity = y/this.maxSun;
+    this.ambientLight.intensity = intensity+ .25;
+  }
   this.processRenderStack();
 }
 
@@ -491,13 +514,15 @@ Oz.prototype.magicLoadOBJ = function(path, handler, callback, pmanager){
   loader.load( objpath, function ( object ) {
     loadMats(object, objpath);
   });
+
   var loadMats = function(obj, objpath){
-    imgloader = new THREE.MTLLoader(manager);
-    imgloader.setPath(objpath.substring(0, objpath.lastIndexOf("/")+1));
-    imgloader.load( obj.materialLibraries[0],
+    matloader = new THREE.MTLLoader(manager);
+    console.log(objpath.substring(0, objpath.lastIndexOf("/")+1), obj.materialLibraries[0]);
+    matloader.setPath(objpath.substring(0, objpath.lastIndexOf("/")+1));
+    matloader.load( obj.materialLibraries[0],
       function(materials){
-         var objLoader = new THREE.OBJLoader(manager);
-         objLoader.setMaterials(materials);
+        console.log(materials)
+         var objLoader = new THREE.OBJLoader(manager).setMaterials(materials);
          objLoader.load(objpath, function(object) {
            handler(object, "success");
          });
@@ -555,7 +580,7 @@ This should of course be in a utilities class, but this function should be used 
 Oz.prototype.showTerrain = function(scene){
   var zoom = 8;
   if(scene == undefined){
-    scene = "default";
+    scene = this.environment;
   }
   var lng2tile = function(lon) {
     return (Math.floor((lon+180)/360*Math.pow(2,zoom)));
