@@ -2,7 +2,7 @@
 var toto;
 function init(){// mapbox is not yet implemented
   toto = new Oz();
-  toto.clickHeels("default", tin("#mainCan")[0], 1);
+  toto.clickHeels("default", tin("#mainCan")[0], 4);
   var three_miles = (1609.34 * 3)/10; // si_units: one 3d unit = one meter
   //toto.showGrid(three_miles, three_miles/2);
 
