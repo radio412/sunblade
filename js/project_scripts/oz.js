@@ -28,7 +28,7 @@ Oz = function (){
   this.quality = 4;
   this.maxSun = 0;
   //the default camera start positions for each view. These can be overried if defined before clickHeels is called.
-  this.camStarts = [new THREE.Vector3(200,200,200),new THREE.Vector3(0,10800,0),new THREE.Vector3(1800,300,0),new THREE.Vector3(0,20,2400)];
+  this.camStarts = [new THREE.Vector3(200,200,200),new THREE.Vector3(0,500,0),new THREE.Vector3(1800,300,0),new THREE.Vector3(0,20,2400)];
 }
 
 

@@ -2,7 +2,7 @@
 var toto;
 function init(){// mapbox is not yet implemented
   toto = new Oz();
-  toto.clickHeels("default", tin("#mainCan")[0], 4);
+  toto.clickHeels("default", tin("#mainCan")[0], 2);
   var three_miles = (1609.34 * 3)/10; // si_units: one 3d unit = one meter
   //toto.showGrid(three_miles, three_miles/2);
 
@@ -30,33 +30,33 @@ function init(){// mapbox is not yet implemented
 
 
 
-  var picker = new ozPickerTool([],function(eventName, picked){
-    if(picked == undefined){
-      return;
-    }
-    if(eventName == "Up"){
-      var mat = picked.object.material;
-      if(mat != undefined){
-        if(mat.length == undefined){
-          mat = [mat];
-        }
-        for(var i=0; i<mat.length; i++){
-          if(mat[i].cachedColor != undefined){
-              mat[i].color.copy(mat[i].cachedColor);
-              delete mat[i].cachedColor;
-          }else{
-            mat[i].cachedColor = new THREE.Color().copy(mat[i].color);
-            mat[i].color.setHex(0x660000);
-            mat[i].side = THREE.DoubleSide;
-            this.selected = picked.object;
-          }
-        }
-        toto.render();
-      }
-    }
-  });
-  picker.selected = {};
-  toto.implementTool("picker", picker);
+  // var picker = new ozPickerTool([],function(eventName, picked){
+  //   if(picked == undefined){
+  //     return;
+  //   }
+  //   if(eventName == "Up"){
+  //     var mat = picked.object.material;
+  //     if(mat != undefined){
+  //       if(mat.length == undefined){
+  //         mat = [mat];
+  //       }
+  //       for(var i=0; i<mat.length; i++){
+  //         if(mat[i].cachedColor != undefined){
+  //             mat[i].color.copy(mat[i].cachedColor);
+  //             delete mat[i].cachedColor;
+  //         }else{
+  //           mat[i].cachedColor = new THREE.Color().copy(mat[i].color);
+  //           mat[i].color.setHex(0x660000);
+  //           mat[i].side = THREE.DoubleSide;
+  //           this.selected = picked.object;
+  //         }
+  //       }
+  //       toto.render();
+  //     }
+  //   }
+  // });
+  // picker.selected = {};
+  // toto.implementTool("picker", picker);
 
   var geometry = new THREE.BoxGeometry( three_miles, 10, three_miles);
   var material = new THREE.MeshLambertMaterial( {color: 0xCCCCCC, side: THREE.DoubleSide} );
